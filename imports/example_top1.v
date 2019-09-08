@@ -150,7 +150,7 @@ reg [4:0] save_cnt;
 
 always @(posedge ui_clk)
 begin
-    if(sys_rst)
+    if(ui_clk_sync_rst)
     begin
         //TODO
         state <= 3'b000;
@@ -163,8 +163,9 @@ begin
             app_en = 1'b0;
             read_cnt <= 5'd30;
             write_cnt <= 5'd30;
-            write_addr <= 5'd0;
-            read_addr <= 5'd0;
+            save_cnt <= 5'd30;
+            write_addr <= 29'd0;
+            read_addr <= 29'd0;
             app_wdf_data <= 256'b0;
 
             if(init_calib_complete)
@@ -201,9 +202,10 @@ begin
                     app_en <= 1'b1;
                     app_wdf_wren <= 1'b1;
                     app_cmd <= 3'b000;
-                    app_wdf_data <= app_wdf_data + 256'd2;
+                    // app_wdf_data <= app_wdf_data + 256'd2;
+                    app_wdf_data <= 256'd5;
                     app_addr <= write_addr;
-                    write_addr <= write_addr + 29'b1;
+                    write_addr <= write_addr + 29'd8;
                     write_cnt <= write_cnt - 5'b1;
                     state <= 3'b010;
                 end
@@ -223,7 +225,7 @@ begin
                     app_en <= 1'b1;
                     app_addr <= read_addr;
                     app_cmd <= 3'b001;
-                    read_addr <= read_addr - 29'b1;
+                    read_addr <= read_addr + 29'd8;
                     read_cnt <= read_cnt - 5'b1;
                     state <= 3'b011;
                 end
@@ -233,7 +235,7 @@ begin
         end
 
         default:
-            state = 3'b001;
+            state = 3'b000; // TODO: when it first starts, state = xxx (unknown) and calib is done, it goes to default
 
         endcase
     end
