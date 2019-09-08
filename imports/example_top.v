@@ -2,39 +2,39 @@
 
 module example_top
 (
-  // Inouts
-  inout [31:0] ddr3_dq,
-  inout [3:0]ddr3_dqs_n,
-  inout [3:0]ddr3_dqs_p,
+    // Inouts
+    inout [31:0] ddr3_dq,
+    inout [3:0]ddr3_dqs_n,
+    inout [3:0]ddr3_dqs_p,
 
-  // Outputs
-  output [14:0] ddr3_addr,
-  output [2:0]ddr3_ba,
-  output ddr3_ras_n,
-  output ddr3_cas_n,
-  output ddr3_we_n,
-  output ddr3_reset_n,
-  output [0:0]ddr3_ck_p,
-  output [0:0]ddr3_ck_n,
-  output [0:0] ddr3_cke,
+    // Outputs
+    output [14:0] ddr3_addr,
+    output [2:0]ddr3_ba,
+    output ddr3_ras_n,
+    output ddr3_cas_n,
+    output ddr3_we_n,
+    output ddr3_reset_n,
+    output [0:0]ddr3_ck_p,
+    output [0:0]ddr3_ck_n,
+    output [0:0] ddr3_cke,
 
-  output [3:0]ddr3_dm,
+    output [3:0]ddr3_dm,
 
-  output [0:0] ddr3_odt,
+    output [0:0] ddr3_odt,
 
 
-  // Inputs
+    // Inputs
 
-  // Single-ended system clock
-  input sys_clk_i,
+    // Single-ended system clock
+    input sys_clk_i,
 
-  output tg_compare_error,
-  output init_calib_complete,
+    output tg_compare_error,
+    output init_calib_complete,
 
-  // System reset - Default polarity of sys_rst pin is Active Low.
-  // System reset polarity will change based on the option 
-  // selected in GUI.
-  input sys_rst
+    // System reset - Default polarity of sys_rst pin is Active Low.
+    // System reset polarity will change based on the option 
+    // selected in GUI.
+    input sys_rst
  );
 
 
@@ -78,8 +78,8 @@ IBUFDS ibufds_clk(
 );
  
  
- assign app_wdf_wren = 	app_en & app_wdf_rdy & app_rdy & (app_cmd == 3'd0);
- assign app_wdf_end = 	app_wdf_wren;
+ assign app_wdf_wren = app_en & app_wdf_rdy & app_rdy & (app_cmd == 3'd0);
+ assign app_wdf_end = app_wdf_wren;
 
  assign app_addr = (app_cmd == 3'd0) ? write_addr : read_addr;
 
