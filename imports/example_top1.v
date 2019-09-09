@@ -80,6 +80,7 @@ reg [4:0] write_cnt;
 reg [28:0] read_addr;
 reg [28:0] write_addr;
 reg [2:0] state;
+reg [2:0] next;
 reg [255:0] save_data [32:0];
 reg [4:0] save_cnt;
 
@@ -149,83 +150,90 @@ parameter [2:0] cmd_write = 3'b000,
  );
 
 
-
-always @(posedge ui_clk)
+always @(posedge ui_clk or posedge ui_clk_sync_rst)
 begin
     if(ui_clk_sync_rst)
-    begin
-        //TODO
         state <= s_initialize;
-        
-    end
-    else
+    else 
+        state <= next;
+end
+
+always @(*)
+begin
+    next = 3'bxxx;
+    case(state)
+    s_initialize:
     begin
-        case(state)
-        s_initialize:
-        begin
-            write_cnt = 5'd20;
-            read_cnt = 5'd20;
-            app_addr = 29'b0;
-            app_wdf_data = 256'b0;
-            if(init_calib_complete)
-                state <= s_idle_begin;
-        end
-
-        s_idle_begin:
-        begin
-            app_en = 1'b0;
-            if(app_rdy && app_wdf_rdy)
-                state <= s_write;
-        end 
-
-        s_write:
-        begin
-            app_en = 1'b1;
-            app_wdf_wren = 1'b1;
-            app_cmd = cmd_write;
-            app_addr = app_addr + 29'd8;
-            app_wdf_data = app_wdf_data + 256'd2;
-            write_cnt = write_cnt - 5'd1;
-            if(write_cnt == 0)
-            begin
-                state = s_idle_w2r;
-                app_addr = 29'b0;
-            end
-                
-            else if(app_rdy != 1 || app_wdf_rdy != 1)
-                state = s_idle_begin;
-        end
-
-        s_idle_w2r:
-        begin
-            app_en = 1'b0;
-            if(app_rdy)
-                state = s_read;
-        end
-
-        s_read:
-        begin
-            app_en = 1'b1;
-            app_cmd = cmd_read;
-            app_addr = app_addr + 8;
-            read_cnt = read_cnt - 1;
-            if(read_cnt == 0)
-                state = s_idle_end;
-            else if(app_rdy != 1)
-                state = s_idle_w2r;
-
-        end
-
-        s_idle_end:
-        begin
-            app_en = 1'b0;
-        end
-
-        default:
-            state = s_initialize;
-
-        endcase
+        write_cnt = 5'd20;
+        read_cnt = 5'd20;
+        app_addr = 29'b0;
+        app_wdf_data = 256'b0;
+        if(init_calib_complete)
+            next = s_idle_begin;
+        else
+            next = s_initialize;
     end
+
+    s_idle_begin:
+    begin
+        app_en = 1'b0;
+        app_wdf_wren = 1'b0;
+        if(app_rdy && app_wdf_rdy)
+            next = s_write;
+        else  
+            next = s_idle_begin;
+    end 
+
+    s_write:
+    begin
+        app_en = 1'b1;
+        app_wdf_wren = 1'b1;
+        app_cmd = cmd_write;
+        app_addr = app_addr + 29'd8;
+        app_wdf_data = app_wdf_data + 256'd2;
+        write_cnt = write_cnt - 5'd1;
+        if(write_cnt == 0)
+        begin
+            next = s_idle_w2r;
+            app_addr = 29'b0;
+        end 
+        else if(app_rdy != 1 || app_wdf_rdy != 1)
+            next = s_idle_begin;
+        else
+            next = s_write;
+    end
+
+    s_idle_w2r:
+    begin
+        app_en = 1'b0;
+        app_wdf_wren = 1'b0;
+        if(app_rdy)
+            next = s_read;
+        else
+            next = s_idle_w2r;
+    end
+
+    s_read:
+    begin
+        app_en = 1'b1;
+        app_cmd = cmd_read;
+        app_addr = app_addr + 8;
+        read_cnt = read_cnt - 1;
+        if(read_cnt == 0)
+            next = s_idle_end;
+        else if(app_rdy != 1)
+            next = s_idle_w2r;
+        else
+            next = s_read;
+
+    end
+
+    s_idle_end:
+    begin
+        app_en = 1'b0;
+    end
+
+    endcase
 end
 
 
@@ -233,8 +241,8 @@ always @(posedge ui_clk)
 begin
     if(app_rd_data_valid)
     begin
-        save_data[save_cnt] <= app_rd_data;
-        save_cnt <= save_cnt + 5'b1;
+        save_data[save_cnt] = app_rd_data;
+        save_cnt = save_cnt + 5'b1;
     end
 end
 
