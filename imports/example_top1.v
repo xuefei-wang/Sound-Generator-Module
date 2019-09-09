@@ -89,7 +89,9 @@ parameter [2:0] s_idle_begin = 3'b000,
                 s_idle_w2r = 3'b010,
                 s_read = 3'b011,
                 s_idle_end = 3'b100,
-                s_initialize = 3'b101;
+                s_initialize = 3'b101,
+                s_write_wait = 3'b110,
+                s_read_wait = 3'b111;
 
 parameter [2:0] cmd_write = 3'b000,
                 cmd_read = 3'b001;
@@ -179,7 +181,12 @@ begin
         app_en = 1'b0;
         app_wdf_wren = 1'b0;
         if(app_rdy && app_wdf_rdy)
+        begin
             next = s_write;
+            app_en = 1'b1;
+            app_wdf_wren = 1'b1;
+            app_cmd = cmd_write;
+        end
         else  
             next = s_idle_begin;
     end 
@@ -189,18 +196,33 @@ begin
         app_en = 1'b1;
         app_wdf_wren = 1'b1;
         app_cmd = cmd_write;
-        app_addr = app_addr + 29'd8;
-        app_wdf_data = app_wdf_data + 256'd2;
-        write_cnt = write_cnt - 5'd1;
+        
         if(write_cnt == 0)
         begin
             next = s_idle_w2r;
             app_addr = 29'b0;
         end 
         else if(app_rdy != 1 || app_wdf_rdy != 1)
-            next = s_idle_begin;
+            next = s_write_wait;
         else
+        begin
             next = s_write;
+            app_addr = app_addr + 29'd8;
+            app_wdf_data = app_wdf_data + 256'd2;
+            write_cnt = write_cnt - 5'd1;
+        end 
+    end
+
+
+    s_write_wait:
+    begin
+        app_en = 1'b1;
+        app_wdf_wren = 1'b1;
+        app_cmd = cmd_write;
+        if(app_rdy == 1 && app_wdf_rdy == 1)
+            next = s_write;
+        else
+            next = s_write_wait;
     end
 
     s_idle_w2r:
@@ -208,7 +230,11 @@ begin
         app_en = 1'b0;
         app_wdf_wren = 1'b0;
         if(app_rdy)
+        begin
             next = s_read;
+            app_en = 1'b1;
+            app_cmd = cmd_read;
+        end            
         else
             next = s_idle_w2r;
     end
@@ -217,15 +243,27 @@ begin
     begin
         app_en = 1'b1;
         app_cmd = cmd_read;
-        app_addr = app_addr + 8;
-        read_cnt = read_cnt - 1;
         if(read_cnt == 0)
             next = s_idle_end;
         else if(app_rdy != 1)
-            next = s_idle_w2r;
+            next = s_read_wait;
         else
+        begin
             next = s_read;
+            app_addr = app_addr + 8;
+            read_cnt = read_cnt - 1;
+        end
 
+    end
+
+    s_read_wait:
+    begin
+        app_en = 1'b1;
+        app_cmd = cmd_read;
+        if(app_rdy)
+            next = s_read;
+        else
+            next = s_read_wait;
     end
 
     s_idle_end:
