@@ -279,8 +279,8 @@ always @(posedge ui_clk)
 begin
     if(app_rd_data_valid)
     begin
-        save_data[save_cnt] = app_rd_data;
-        save_cnt = save_cnt + 5'b1;
+        save_data[save_cnt] <= app_rd_data;
+        save_cnt <= save_cnt + 5'b1;
     end
 end
 
