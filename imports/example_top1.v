@@ -83,13 +83,15 @@ reg [2:0] state;
 reg [255:0] save_data [32:0];
 reg [4:0] save_cnt;
 
-/***
-    000: Initialize
-    001: Idle
-    010: Write
-    011: Read
-***/
+parameter [2:0] s_idle_begin = 3'b000,
+                s_write = 3'b001,
+                s_idle_w2r = 3'b010,
+                s_read = 3'b011,
+                s_idle_end = 3'b100,
+                s_initialize = 3'b101;
 
+parameter [2:0] cmd_write = 3'b000,
+                cmd_read = 3'b001;
 
  mig_7series_0 u_mig_7series_0 (
 
@@ -153,89 +155,74 @@ begin
     if(ui_clk_sync_rst)
     begin
         //TODO
-        state <= 3'b000;
+        state <= s_initialize;
+        
     end
     else
     begin
         case(state)
-        3'b000: // Initialize
+        s_initialize:
+        begin
+            write_cnt = 5'd20;
+            read_cnt = 5'd20;
+            app_addr = 29'b0;
+            app_wdf_data = 256'b0;
+            if(init_calib_complete)
+                state <= s_idle_begin;
+        end
+
+        s_idle_begin:
         begin
             app_en = 1'b0;
-            read_cnt <= 5'd30;
-            write_cnt <= 5'd30;
-            save_cnt <= 5'd30;
-            write_addr <= 29'd0;
-            read_addr <= 29'd0;
-            app_wdf_data <= 256'b0;
-
-            if(init_calib_complete)
-                state <= 3'b001;
-            else
-                state <= 3'b000;
-            
+            if(app_rdy && app_wdf_rdy)
+                state <= s_write;
         end 
 
-        3'b001: // Idle
+        s_write:
+        begin
+            app_en = 1'b1;
+            app_wdf_wren = 1'b1;
+            app_cmd = cmd_write;
+            app_addr = app_addr + 29'd8;
+            app_wdf_data = app_wdf_data + 256'd2;
+            write_cnt = write_cnt - 5'd1;
+            if(write_cnt == 0)
+            begin
+                state = s_idle_w2r;
+                app_addr = 29'b0;
+            end
+                
+            else if(app_rdy != 1 || app_wdf_rdy != 1)
+                state = s_idle_begin;
+        end
+
+        s_idle_w2r:
         begin
             app_en = 1'b0;
             if(app_rdy)
-            begin
-                if(write_cnt)
-                    state <= 3'b010;
-                else if(read_cnt)
-                    state <= 3'b011; 
-                else
-                    state <= 3'b001;
-            end
-            else 
-                state <= 3'b001;
+                state = s_read;
         end
 
-        3'b010: // Write
+        s_read:
         begin
-            if(app_wdf_rdy & app_rdy)
-            begin
-                if(!write_cnt)
-                    state <= 3'b011;
-                else
-                begin
-                    app_en <= 1'b1;
-                    app_wdf_wren <= 1'b1;
-                    app_cmd <= 3'b000;
-                    // app_wdf_data <= app_wdf_data + 256'd2;
-                    app_wdf_data <= 256'd5;
-                    app_addr <= write_addr;
-                    write_addr <= write_addr + 29'd8;
-                    write_cnt <= write_cnt - 5'b1;
-                    state <= 3'b010;
-                end
-            end
-            else
-                state <= 3'b001;
+            app_en = 1'b1;
+            app_cmd = cmd_read;
+            app_addr = app_addr + 8;
+            read_cnt = read_cnt - 1;
+            if(read_cnt == 0)
+                state = s_idle_end;
+            else if(app_rdy != 1)
+                state = s_idle_w2r;
+
         end
 
-        3'b011: // Read
+        s_idle_end:
         begin
-            if(app_rdy)
-            begin
-                if(!read_cnt)
-                    state <= 3'b001;
-                else
-                begin
-                    app_en <= 1'b1;
-                    app_addr <= read_addr;
-                    app_cmd <= 3'b001;
-                    read_addr <= read_addr + 29'd8;
-                    read_cnt <= read_cnt - 5'b1;
-                    state <= 3'b011;
-                end
-            end
-            else
-                state <= 3'b001;
+            app_en = 1'b0;
         end
 
         default:
-            state = 3'b000; // TODO: when it first starts, state = xxx (unknown) and calib is done, it goes to default
+            state = s_initialize;
 
         endcase
     end
