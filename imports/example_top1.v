@@ -38,19 +38,19 @@ module example_top1
  );
 
 // define variables, related to mig
-reg [28:0] app_addr;
-reg [2:0] app_cmd;
-reg app_en; 
+wire [28:0] app_addr;
+wire [2:0] app_cmd;
+wire app_en; 
 
-reg [255:0] app_wdf_data;
+wire [255:0] app_wdf_data;
 wire app_wdf_end;
-reg app_wdf_wren;
+wire app_wdf_wren;
 
 wire [255:0] app_rd_data;
 wire app_rd_data_end; 
 wire app_rd_data_valid;
     
-wire app_rdy; 
+wire app_rdy;
 wire app_wdf_rdy; 
     
 wire [31:0] app_wdf_mask;
@@ -75,14 +75,22 @@ assign app_zq_req = 0;
 
 
 // define variables, related  to user design (my state machine)
-reg [4:0] read_cnt;
-reg [4:0] write_cnt;
-reg [28:0] read_addr;
-reg [28:0] write_addr;
+reg [4:0] read_cnt_next, read_cnt_reg;
+reg [4:0] write_cnt_next, write_cnt_reg;
+reg [28:0] read_addr_next, read_addr_reg;
+reg [28:0] write_addr_next, write_addr_reg;
+
 reg [2:0] state;
 reg [2:0] next;
+
 reg [255:0] save_data [32:0];
 reg [4:0] save_cnt;
+
+reg app_en_next, app_en_reg;
+reg [255:0] app_wdf_data_next, app_wdf_data_reg;
+reg app_wdf_wren_next, app_wdf_wren_reg;
+reg [2:0] app_cmd_next, app_cmd_reg;
+
 
 parameter [2:0] s_idle_begin = 3'b000,
                 s_write = 3'b001,
@@ -163,14 +171,10 @@ end
 always @(*)
 begin
     next = 3'bxxx;
+
     case(state)
     s_initialize:
     begin
-        write_cnt = 5'd20;
-        read_cnt = 5'd20;
-        app_addr = 29'b0;
-        app_wdf_data = 256'b0;
-        app_en = 1'b0;
         if(init_calib_complete)
             next = s_write;
         else
@@ -179,38 +183,25 @@ begin
 
     s_write:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b1;
-        app_cmd = cmd_write;
         
-        if(write_cnt == 0)
+        if(write_cnt_reg == 0)
         begin
             next = s_read;
-            app_addr = 29'b0;
         end 
-        else if(app_rdy == 1 && app_wdf_rdy == 1)
+        else
         begin
             next = s_write;
-            app_addr = app_addr + 29'd8;
-            app_wdf_data = app_wdf_data + 256'd2;
-            write_cnt = write_cnt - 5'd1;
         end
     end
 
 
     s_read:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b0;
-        app_cmd = cmd_read;
-
-        if(read_cnt == 0)
+        if(read_cnt_reg == 0)
             next = s_idle_end;
-        else if(app_rdy == 1)
+        else
         begin
             next = s_read;
-            app_addr = app_addr + 29'd8;
-            read_cnt = read_cnt - 5'b1;
         end
 
     end
@@ -218,21 +209,98 @@ begin
 
     s_idle_end:
     begin
-        app_en = 1'b0;
+        next = s_idle_end;    
     end
 
     endcase
 end
 
 
-always @(posedge ui_clk)
+always @(posedge ui_clk or posedge ui_clk_sync_rst)
 begin
-    if(app_rd_data_valid)
+    if(ui_clk_sync_rst)
+        save_cnt <= 5'b0;
+    else if(app_rd_data_valid)
     begin
         save_data[save_cnt] <= app_rd_data;
         save_cnt <= save_cnt + 5'b1;
     end
 end
 
+
+
+always @(*)
+begin
+    
+    case(state)
+    s_initialize:
+    begin
+        write_cnt_next = 5'd20;
+        read_cnt_next = 5'd20;
+        read_addr_next = 29'b0;
+        app_wdf_data_next = 256'b0;
+        app_en_next = 1'b0;
+    end
+
+    s_write:
+    begin
+        app_en_next = 1'b1;
+        app_wdf_wren_next = 1'b1;
+        app_cmd_next = cmd_write;
+        
+        if(write_cnt_reg == 0)
+        begin
+            write_addr_next = 29'b0;
+        end 
+        else if(app_rdy == 1 && app_wdf_rdy == 1)
+        begin
+            write_addr_next = write_addr_reg + 29'd8;
+            app_wdf_data_next = app_wdf_data_reg + 256'd2;
+            write_cnt_next = write_cnt_reg - 5'd1;
+        end
+    end
+
+
+    s_read:
+    begin
+        app_en_next = 1'b1;
+        app_wdf_wren_next = 1'b0;
+        app_cmd_next = cmd_read;
+
+        if(app_rdy == 1)
+        begin
+            read_addr_next = read_addr_reg + 29'd8;
+            read_cnt_next = read_cnt_reg - 5'b1;
+        end
+
+    end
+
+    s_idle_end:
+    begin
+        app_en_next = 1'b0;
+    end
+    endcase
+end
+
+always @(posedge ui_clk, posedge ui_clk_sync_rst)
+begin
+    // TODO: not sure if to include reset here 
+    read_cnt_reg <= read_cnt_next;
+    write_cnt_reg <= write_cnt_next;
+    read_addr_reg <= read_addr_next;
+    write_addr_reg <= write_addr_next;
+
+    app_en_reg <= app_en_next;
+    app_wdf_data_reg <= app_wdf_data_next;
+    app_wdf_wren_reg <= app_wdf_wren_next;
+    app_cmd_reg <= app_cmd_next;
+end
+
+
+assign app_cmd = app_cmd_reg;
+assign app_addr = (app_cmd == cmd_read) ? read_addr_reg : write_addr_reg;
+assign app_en = app_en_reg;
+assign app_wdf_data = app_wdf_data_reg;
+assign app_wdf_wren = app_wdf_wren_reg;
 
 endmodule
