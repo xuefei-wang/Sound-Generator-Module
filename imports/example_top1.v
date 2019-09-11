@@ -166,8 +166,8 @@ begin
     case(state)
     s_initialize:
     begin
-        write_cnt = 5'd20;
-        read_cnt = 5'd20;
+        write_cnt = 5'd10;
+        read_cnt = 5'd10;
         app_addr = 29'b0;
         app_wdf_data = 256'b0;
         if(init_calib_complete)
@@ -178,14 +178,12 @@ begin
 
     s_idle_begin:
     begin
-        app_en = 1'b0;
-        app_wdf_wren = 1'b0;
+        app_en = 1'b1;
+        app_wdf_wren = 1'b1;
+        app_cmd = cmd_write;
         if(app_rdy && app_wdf_rdy)
         begin
             next = s_write;
-            app_en = 1'b1;
-            app_wdf_wren = 1'b1;
-            app_cmd = cmd_write;
         end
         else  
             next = s_idle_begin;
@@ -203,7 +201,7 @@ begin
             app_addr = 29'b0;
         end 
         else if(app_rdy != 1 || app_wdf_rdy != 1)
-            next = s_write_wait;
+            next = s_idle_begin;
         else
         begin
             next = s_write;
@@ -214,26 +212,25 @@ begin
     end
 
 
-    s_write_wait:
-    begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b1;
-        app_cmd = cmd_write;
-        if(app_rdy == 1 && app_wdf_rdy == 1)
-            next = s_write;
-        else
-            next = s_write_wait;
-    end
+    // s_write_wait:
+    // begin
+    //     app_en = 1'b1;
+    //     app_wdf_wren = 1'b1;
+    //     app_cmd = cmd_write;
+    //     if(app_rdy == 1 && app_wdf_rdy == 1)
+    //         next = s_write;
+    //     else
+    //         next = s_write_wait;
+    // end
 
     s_idle_w2r:
     begin
-        app_en = 1'b0;
+        app_en = 1'b1;
         app_wdf_wren = 1'b0;
+        app_cmd = cmd_read;
         if(app_rdy)
         begin
             next = s_read;
-            app_en = 1'b1;
-            app_cmd = cmd_read;
         end            
         else
             next = s_idle_w2r;
@@ -246,7 +243,7 @@ begin
         if(read_cnt == 0)
             next = s_idle_end;
         else if(app_rdy != 1)
-            next = s_read_wait;
+            next = s_idle_w2r;
         else
         begin
             next = s_read;
@@ -256,15 +253,15 @@ begin
 
     end
 
-    s_read_wait:
-    begin
-        app_en = 1'b1;
-        app_cmd = cmd_read;
-        if(app_rdy)
-            next = s_read;
-        else
-            next = s_read_wait;
-    end
+    // s_read_wait:
+    // begin
+    //     app_en = 1'b1;
+    //     app_cmd = cmd_read;
+    //     if(app_rdy)
+    //         next = s_read;
+    //     else
+    //         next = s_read_wait;
+    // end
 
     s_idle_end:
     begin
