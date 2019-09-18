@@ -243,6 +243,7 @@ begin
     s_end:
     begin
         app_en = 1'b0;
+        next = s_end;
     end
 
     endcase
