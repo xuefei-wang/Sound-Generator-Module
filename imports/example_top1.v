@@ -164,10 +164,6 @@ begin
     case(state)
     s_initialize:
     begin
-        write_cnt = 5'd10;
-        read_cnt = 5'd10;
-        app_addr = 29'b0;
-        app_wdf_data = 256'b0;
         if(init_calib_complete)
             next = s_idle_write;
         else
@@ -176,9 +172,6 @@ begin
 
     s_idle_write:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b1;
-        app_cmd = cmd_write;
         if(app_rdy && app_wdf_rdy)
         begin
             next = s_write;
@@ -189,20 +182,80 @@ begin
 
     s_write:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b1;
-        app_cmd = cmd_write;
-        
         if(write_cnt == 0)
         begin
             next = s_idle_read;
-            app_addr = 29'b0;
         end 
         else if(app_rdy != 1 || app_wdf_rdy != 1)
             next = s_idle_write;
         else
         begin
             next = s_write;
+        end 
+    end
+
+
+    s_idle_read:
+    begin
+        if(app_rdy)
+        begin
+            next = s_read;
+        end   
+        else
+            next = s_idle_read;
+    end
+
+    s_read:
+    begin
+        if(read_cnt == 0)
+            next = s_end;
+        else if(app_rdy != 1)
+            next = s_idle_read;
+        else
+        begin
+            next = s_read;
+        end
+
+    end
+
+    s_end:
+    begin
+        next = s_end;
+    end
+
+    endcase
+end
+
+always @(*)
+begin
+    case(state)
+    s_initialize:
+    begin
+        write_cnt = 5'd10;
+        read_cnt = 5'd10;
+        app_addr = 29'b0;
+        app_wdf_data = 256'b0;
+    end
+
+    s_idle_write:
+    begin
+        app_en = 1'b1;
+        app_wdf_wren = 1'b1;
+        app_cmd = cmd_write;
+    end 
+
+    s_write:
+    begin
+        app_en = 1'b1;
+        app_wdf_wren = 1'b1;
+        app_cmd = cmd_write;
+        
+        if(write_cnt == 0)
+        begin
+            app_addr = 29'b0;
+        end 
+        else if(app_rdy == 1 && app_wdf_rdy == 1)
+        begin
             app_addr = app_addr + 29'd8;
             app_wdf_data = app_wdf_data + 256'd2;
             write_cnt = write_cnt - 5'd1;
@@ -215,25 +268,14 @@ begin
         app_en = 1'b1;
         app_wdf_wren = 1'b0;
         app_cmd = cmd_read;
-        if(app_rdy)
-        begin
-            next = s_read;
-        end            
-        else
-            next = s_idle_read;
     end
 
     s_read:
     begin
         app_en = 1'b1;
         app_cmd = cmd_read;
-        if(read_cnt == 0)
-            next = s_end;
-        else if(app_rdy != 1)
-            next = s_idle_read;
-        else
+        if(app_rdy == 1)
         begin
-            next = s_read;
             app_addr = app_addr + 8;
             read_cnt = read_cnt - 1;
         end
@@ -243,7 +285,6 @@ begin
     s_end:
     begin
         app_en = 1'b0;
-        next = s_end;
     end
 
     endcase
