@@ -38,13 +38,13 @@ module example_top1
  );
 
 // define variables, related to mig
-reg [28:0] app_addr;
-reg [2:0] app_cmd;
-reg app_en; 
+reg [28:0] app_addr_next, app_addr;
+reg [2:0] app_cmd_next, app_cmd;
+reg app_en_next, app_en; 
 
-reg [255:0] app_wdf_data;
+reg [255:0] app_wdf_data_next, app_wdf_data;
 wire app_wdf_end;
-reg app_wdf_wren;
+reg app_wdf_wren_next, app_wdf_wren;
 
 wire [255:0] app_rd_data;
 wire app_rd_data_end; 
@@ -75,10 +75,10 @@ assign app_zq_req = 0;
 
 
 // define variables, related  to user design (my state machine)
-reg [4:0] read_cnt;
-reg [4:0] write_cnt;
-reg [28:0] read_addr;
-reg [28:0] write_addr;
+reg [4:0] read_cnt_next, read_cnt_reg;
+reg [4:0] write_cnt_next, write_cnt_reg;
+reg [28:0] read_addr_next, read_addr_reg;
+reg [28:0] write_addr_next, write_addr_reg;
 reg [2:0] state;
 reg [2:0] next;
 reg [255:0] save_data [32:0];
@@ -158,6 +158,38 @@ begin
         state <= next;
 end
 
+
+
+always @(posedge ui_clk or posedge ui_clk_sync_rst)
+begin
+    if(ui_clk_sync_rst)
+    begin
+        read_cnt_reg <= 5'd10;
+        write_cnt_reg <= 5'd10;
+        read_addr_reg <= 29'b0;
+        write_addr_reg <= 29'b0;
+        app_en <= 29'b0;
+        app_en <= cmd_write;
+        app_en <= 1'b0; 
+
+        app_wdf_data <= 256'b0;
+        app_wdf_wren <= 1'b0;
+    end
+    else 
+    begin
+        read_cnt_reg <= read_cnt_next;
+        write_cnt_reg <= write_cnt_next;
+        read_addr_reg <= read_addr_next;
+        write_addr_reg <= write_addr_next;
+        app_addr <= app_addr_next;
+        app_cmd <= app_cmd_next;
+        app_en <= app_en_next; 
+        app_wdf_data <= app_wdf_data_next;
+        app_wdf_wren <= app_wdf_wren_next;
+    end
+end
+
+
 always @(*)
 begin
     next = 3'bxxx;
@@ -182,7 +214,7 @@ begin
 
     s_write:
     begin
-        if(write_cnt == 0)
+        if(write_cnt_reg == 0)
         begin
             next = s_read;
         end 
@@ -207,7 +239,7 @@ begin
 
     s_read:
     begin
-        if(read_cnt == 0)
+        if(read_cnt_reg == 0)
             next = s_end;
         else if(app_rdy != 1)
             next = s_idle_read;
@@ -231,61 +263,61 @@ begin
     case(state)
     s_initialize:
     begin
-        write_cnt = 5'd10;
-        read_cnt = 5'd10;
-        app_addr = 29'b0;
-        read_addr = 29'b0;
-        write_addr = 29'b0;
-        app_wdf_data = 256'b0;
+        write_cnt_next = 5'd10;
+        read_cnt_next = 5'd10;
+        app_addr_next = 29'b0;
+        read_addr_next = 29'b0;
+        write_addr_next = 29'b0;
+        app_wdf_data_next = 256'b0;
     end
 
     s_idle_write:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b1;
-        app_cmd = cmd_write;
+        app_en_next = 1'b1;
+        app_wdf_wren_next = 1'b1;
+        app_cmd_next = cmd_write;
     end 
 
     s_write:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b1;
-        app_cmd = cmd_write;
+        app_en_next = 1'b1;
+        app_wdf_wren_next = 1'b1;
+        app_cmd_next = cmd_write;
         
         if(app_rdy == 1 && app_wdf_rdy == 1)
         begin
-            app_addr = write_addr;
-            write_addr = write_addr + 29'd8;
-            app_wdf_data = app_wdf_data + 256'd2;
-            write_cnt = write_cnt - 5'd1;
+            app_addr_next = write_addr_next;
+            write_addr_next = write_addr_next + 29'd8;
+            app_wdf_data_next = app_wdf_data_next + 256'd2;
+            write_cnt_next = write_cnt_next - 5'd1;
         end 
     end
 
 
     s_idle_read:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b0;
-        app_cmd = cmd_read;
+        app_en_next = 1'b1;
+        app_wdf_wren_next = 1'b0;
+        app_cmd_next = cmd_read;
     end
 
     s_read:
     begin
-        app_en = 1'b1;
-        app_wdf_wren = 1'b0;
-        app_cmd = cmd_read;
+        app_en_next = 1'b1;
+        app_wdf_wren_next = 1'b0;
+        app_cmd_next = cmd_read;
         if(app_rdy == 1)
         begin
-            app_addr = read_addr;
-            read_addr = read_addr + 8;
-            read_cnt = read_cnt - 1;
+            app_addr_next = read_addr_next;
+            read_addr_next = read_addr_next + 8;
+            read_cnt_next = read_cnt_next - 1;
         end
 
     end
 
     s_end:
     begin
-        app_en = 1'b0;
+        app_en_next = 1'b0;
     end
 
     endcase
