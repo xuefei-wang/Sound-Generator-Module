@@ -44,7 +44,7 @@ reg app_en_next, app_en;
 
 reg [255:0] app_wdf_data_next, app_wdf_data;
 wire app_wdf_end;
-reg app_wdf_wren_next, app_wdf_wren;
+wire app_wdf_wren;
 
 wire [255:0] app_rd_data;
 wire app_rd_data_end; 
@@ -65,7 +65,7 @@ wire app_zq_ack;
 wire ui_clk; 
 wire ui_clk_sync_rst;
     
-
+assign app_wdf_wren = app_en & app_wdf_rdy & app_rdy & (app_cmd == 3'd0);
 assign app_wdf_end = app_wdf_wren;
 assign app_wdf_mask = 32'd0;
 
@@ -173,7 +173,7 @@ begin
         app_en <= 1'b0; 
 
         app_wdf_data <= 256'b0;
-        app_wdf_wren <= 1'b0;
+
     end
     else 
     begin
@@ -185,7 +185,7 @@ begin
         app_cmd <= app_cmd_next;
         app_en <= app_en_next; 
         app_wdf_data <= app_wdf_data_next;
-        app_wdf_wren <= app_wdf_wren_next;
+        
     end
 end
 
@@ -274,14 +274,14 @@ begin
     s_idle_write:
     begin
         app_en_next = 1'b1;
-        app_wdf_wren_next = 1'b1;
+        
         app_cmd_next = cmd_write;
     end 
 
     s_write:
     begin
         app_en_next = 1'b1;
-        app_wdf_wren_next = 1'b1;
+        
         app_cmd_next = cmd_write;
         
         if(app_rdy == 1 && app_wdf_rdy == 1)
@@ -297,14 +297,14 @@ begin
     s_idle_read:
     begin
         app_en_next = 1'b1;
-        app_wdf_wren_next = 1'b0;
+        
         app_cmd_next = cmd_read;
     end
 
     s_read:
     begin
         app_en_next = 1'b1;
-        app_wdf_wren_next = 1'b0;
+        
         app_cmd_next = cmd_read;
         if(app_rdy == 1)
         begin
