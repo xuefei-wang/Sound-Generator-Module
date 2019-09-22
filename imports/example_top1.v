@@ -177,14 +177,22 @@ begin
     end
     else 
     begin
-        read_cnt_reg <= read_cnt_next;
-        write_cnt_reg <= write_cnt_next;
-        read_addr_reg <= read_addr_next;
-        write_addr_reg <= write_addr_next;
-        app_addr <= app_addr_next;
-        app_cmd <= app_cmd_next;
-        app_en <= app_en_next; 
-        app_wdf_data <= app_wdf_data_next;
+        if(app_rdy && app_wdf_rdy)
+        begin
+            write_cnt_reg <= write_cnt_next;
+            write_addr_reg <= write_addr_next;
+            app_wdf_data <= app_wdf_data_next;    
+        end
+        
+        if(app_rdy)
+        begin
+            app_addr <= app_addr_next;
+            app_cmd <= app_cmd_next;
+            app_en <= app_en_next;
+            read_cnt_reg <= read_cnt_next;
+            read_addr_reg <= read_addr_next;
+        end
+        
         
     end
 end
