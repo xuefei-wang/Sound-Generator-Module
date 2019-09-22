@@ -286,10 +286,10 @@ begin
         
         if(app_rdy == 1 && app_wdf_rdy == 1)
         begin
-            app_addr_next = write_addr_next;
-            write_addr_next = write_addr_next + 29'd8;
-            app_wdf_data_next = app_wdf_data_next + 256'd2;
-            write_cnt_next = write_cnt_next - 5'd1;
+            app_addr_next = write_addr_reg;
+            write_addr_next = write_addr_reg + 29'd8;
+            app_wdf_data_next = app_wdf_data + 256'd2;
+            write_cnt_next = write_cnt_reg - 5'd1;
         end 
     end
 
@@ -308,9 +308,9 @@ begin
         app_cmd_next = cmd_read;
         if(app_rdy == 1)
         begin
-            app_addr_next = read_addr_next;
-            read_addr_next = read_addr_next + 8;
-            read_cnt_next = read_cnt_next - 1;
+            app_addr_next = read_addr_reg;
+            read_addr_next = read_addr_reg + 8;
+            read_cnt_next = read_cnt_reg - 1;
         end
 
     end
