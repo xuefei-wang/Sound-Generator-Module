@@ -37,7 +37,9 @@ module example_top1
     input sys_rst
  );
 
-// define variables, related to mig
+//***************************************************************************
+// Define Variables (MIG)
+//***************************************************************************
 reg [28:0] app_addr_next, app_addr;
 reg [2:0] app_cmd_next, app_cmd;
 reg app_en_next, app_en; 
@@ -74,7 +76,9 @@ assign app_ref_req = 0;
 assign app_zq_req = 0;
 
 
-// define variables, related  to user design (my state machine)
+//***************************************************************************
+// Define Variables (FSM)
+//***************************************************************************
 reg [4:0] read_cnt_next, read_cnt_reg;
 reg [4:0] write_cnt_next, write_cnt_reg;
 reg [28:0] read_addr_next, read_addr_reg;
@@ -94,6 +98,9 @@ parameter [2:0] s_idle_write = 3'b000,
 parameter [2:0] cmd_write = 3'b000,
                 cmd_read = 3'b001;
 
+//***************************************************************************
+// Instantiate MIG
+//***************************************************************************
  mig_7series_0 u_mig_7series_0 (
 
     // Memory interface ports, connect to top module directly
@@ -120,7 +127,7 @@ parameter [2:0] cmd_write = 3'b000,
 
     .app_wdf_data (app_wdf_data), // input [255:0], 
     .app_wdf_end(app_wdf_end), // input, just directly connect to app_wdf_wren, https://www.xilinx.com/support/answers/62568.html
-    .app_wdf_wren (app_wdf_wren), // input, for reference, app_wdf_wren = app_en & app_wdf_rdy & app_rdy & (app_cmd == 3'd0);
+    .app_wdf_wren (app_wdf_wren), // input
 
     .app_rd_data(app_rd_data), // output [255:0], valid when app_rd_data_valid = 1
     .app_rd_data_end (app_rd_data_end), // output, ignore
@@ -131,7 +138,7 @@ parameter [2:0] cmd_write = 3'b000,
     
     .app_wdf_mask (app_wdf_mask), // input [31:0]
 
-    // Application interface, not important, TODO: temp set to 1, check later
+    // Application interface
     .app_sr_req (app_sr_req), // input
     .app_ref_req(app_ref_req), // input
     .app_zq_req (app_zq_req), // input
@@ -139,8 +146,8 @@ parameter [2:0] cmd_write = 3'b000,
     .app_ref_ack(app_ref_ack), // output
     .app_zq_ack (app_zq_ack), // output
     
-    // 
-    .ui_clk(ui_clk), // output, TODO: check this
+    // ui clock & reset
+    .ui_clk(ui_clk), // output
     .ui_clk_sync_rst (ui_clk_sync_rst), // output,ignore 
     
     
@@ -150,6 +157,9 @@ parameter [2:0] cmd_write = 3'b000,
  );
 
 
+//***************************************************************************
+// State combinatorial block
+//***************************************************************************
 always @(posedge ui_clk or posedge ui_clk_sync_rst)
 begin
     if(ui_clk_sync_rst)
@@ -159,7 +169,9 @@ begin
 end
 
 
-
+//***************************************************************************
+// Output combinatorial block
+//***************************************************************************
 always @(posedge ui_clk or posedge ui_clk_sync_rst)
 begin
     if(ui_clk_sync_rst)
@@ -173,6 +185,7 @@ begin
         app_en <= 1'b0; 
 
         app_wdf_data <= 256'b0;
+        save_cnt <= 5'b0;
 
     end
     else 
@@ -193,11 +206,18 @@ begin
             read_addr_reg <= read_addr_next;
         end
         
+        if(app_rd_data_valid)
+        begin
+            save_data[save_cnt] <= app_rd_data;
+            save_cnt <= save_cnt + 5'b1;
+        end
         
     end
 end
 
-
+//***************************************************************************
+// State sequential block
+//***************************************************************************
 always @(*)
 begin
     next = 3'bxxx;
@@ -266,6 +286,10 @@ begin
     endcase
 end
 
+
+//***************************************************************************
+// Output sequential block
+//***************************************************************************
 always @(*)
 begin
     case(state)
@@ -330,16 +354,5 @@ begin
 
     endcase
 end
-
-
-always @(posedge ui_clk)
-begin
-    if(app_rd_data_valid)
-    begin
-        save_data[save_cnt] <= app_rd_data;
-        save_cnt <= save_cnt + 5'b1;
-    end
-end
-
 
 endmodule
