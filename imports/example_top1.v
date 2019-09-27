@@ -180,8 +180,8 @@ begin
         write_cnt_reg <= 5'd10;
         read_addr_reg <= 29'b0;
         write_addr_reg <= 29'b0;
-        app_en <= 29'b0;
-        app_en <= cmd_write;
+        app_addr <= 29'b0;
+        app_cmd <= cmd_write;
         app_en <= 1'b0; 
 
         app_wdf_data <= 256'b0;
