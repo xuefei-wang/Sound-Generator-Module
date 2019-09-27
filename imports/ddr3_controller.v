@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 
-module example_top1
+module ddr3_controller
 (
     // Inouts
     inout [31:0] ddr3_dq,
