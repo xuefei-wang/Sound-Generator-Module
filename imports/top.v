@@ -39,7 +39,7 @@ module top(
 
     output wire tg_compare_error,
     
-    input wire sys_rst, // System reset - Default polarity of sys_rst pin is Active Low, System reset polarity will change based on the option, selected in GUI.
+    input wire sys_rst // System reset - Default polarity of sys_rst pin is Active Low, System reset polarity will change based on the option, selected in GUI.
 );
 
 
@@ -88,8 +88,7 @@ assign input_write_cnt = 6'd10;
 // Instantiate DDR3 controller
 //***************************************************************************
 // TODO: check these signals, modify the following and define vars accordingly
-ddr3_controller
-(
+ddr3_controller my_ddr3_controller(
     // Inouts
     .ddr3_dq(ddr3_dq),
     .ddr3_dqs_n(ddr3_dqs_n),
@@ -139,7 +138,7 @@ ddr3_controller
 //***************************************************************************
 // Instantiate USB controller (via frontpanel API)
 //***************************************************************************
-my_usb_controller usb_controller(
+usb_controller my_usb_controller(
 	.okUH(okUH),
 	.okHU(okHU),
 	.okRSVD(okRSVD),
@@ -160,7 +159,7 @@ my_usb_controller usb_controller(
 //***************************************************************************
 // Instantiate DAC controller
 //***************************************************************************
-// my_dac_top dac_top(
+// dac_top my_dac_top(
 // 	.clk             (okClk),
 // 	.reset           (mst_reset),
 
