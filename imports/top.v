@@ -180,41 +180,42 @@ my_usb_controller usb_controller(
 //***************************************************************************
 // TODO: need to create ip, FIFO (32 x 1024)? maybe add the size?
 // TODO: change the design according to the need of DDR3
-fifo_generator_usb2ddr fifo(
+fifo_generator_0 fifo_generator_usb2ddr(
 	.clk        (okClk),
 	.srst       (mst_reset),
 	// FIFO_WRITE
 	.full       (full), // output full signal
-	.din        (pipe_in_data), // write data
+	.din        (pipe_in_data), // write data, [31:0]
 	.wr_en      (pipe_in_write), // write enable, data should be written when it's asserted
 	// FIFO_READ
 	.empty      (empty), // output empty signal
-	.dout       (input_write_data), // 256bit
+	.dout       (input_write_data), // [255:0]
 	.rd_en      (app_wdf_wren), // read enable
 	// Data Count
-	.data_count (data_count) // 10 bit, data count, number of words, should range from 0-1024
-);
+	.rd_data_count(rd_data_count),  // output wire [14 : 0] rd_data_count
+    .wr_data_count(wr_data_count)  // output wire [17 : 0] wr_data_count
 
+);
 
 
 //***************************************************************************
 // Instantiate FIFO module (DDR3 - USB SDRAM) TODO: delete this when DAC is incorporated
 //***************************************************************************
-fifo_generator_ddr2usb fifo(
+fifo_generator_1 fifo_generator_ddr2usb (
 	.clk        (okClk),
 	.srst       (mst_reset),
 	// FIFO_WRITE
 	.full       (full), // output full signal
-	.din        (app_rd_data), // write data
+	.din        (app_rd_data), // write data, [255 : 0]
 	.wr_en      (app_rd_data_valid), // write enable, data should be written when it's asserted
 	// FIFO_READ
 	.empty      (empty), // output empty signal
-	.dout       (pipe_out_data), // 256bit
+	.dout       (pipe_out_data), // [31 : 0]
 	.rd_en      (pipe_out_read), // read enable
 	// Data Count
-	.data_count (data_count) // 10 bit, data count, number of words, should range from 0-1024
+	.rd_data_count(rd_data_count),  // output wire [19 : 0] rd_data_count
+    .wr_data_count(wr_data_count)  // output wire [16 : 0] wr_data_count
 );
-
 
 //***************************************************************************
 // Instantiate FIFO module (DDR3 SDRAM - DAC)
