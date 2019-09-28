@@ -3,38 +3,47 @@
 module ddr3_controller
 (
     // Inouts
-    inout [31:0] ddr3_dq,
-    inout [3:0]ddr3_dqs_n,
-    inout [3:0]ddr3_dqs_p,
+    inout wire [31:0] ddr3_dq,
+    inout wire [3:0] ddr3_dqs_n,
+    inout wire [3:0] ddr3_dqs_p,
 
     // Outputs
-    output [14:0] ddr3_addr,
-    output [2:0]ddr3_ba,
-    output ddr3_ras_n,
-    output ddr3_cas_n,
-    output ddr3_we_n,
-    output ddr3_reset_n,
-    output [0:0]ddr3_ck_p,
-    output [0:0]ddr3_ck_n,
-    output [0:0] ddr3_cke,
+    output wire [14:0] ddr3_addr,
+    output wire [2:0]ddr3_ba,
+    output wire ddr3_ras_n,
+    output wire ddr3_cas_n,
+    output wire ddr3_we_n,
+    output wire ddr3_reset_n,
+    output wire [0:0] ddr3_ck_p,
+    output wire [0:0] ddr3_ck_n,
+    output wire [0:0] ddr3_cke,
 
-    output [3:0]ddr3_dm,
+    output wire [3:0]ddr3_dm,
 
-    output [0:0] ddr3_odt,
-
+    output wire [0:0] ddr3_odt,
 
     // Inputs
+    input wire [28:0] input_read_addr,
+    input wire [28:0] input_write_addr,
+    input wire [5:0] input_read_cnt, // TODO: modify this width
+    input wire [5:0] input_write_cnt,
 
     // Single-ended system clock
-    input sys_clk_i,
+    input wire sys_clk_i,
 
-    output tg_compare_error,
-    output init_calib_complete,
+    output wire tg_compare_error,
+    output wire init_calib_complete,
 
     // System reset - Default polarity of sys_rst pin is Active Low.
     // System reset polarity will change based on the option 
     // selected in GUI.
-    input sys_rst
+    input wire sys_rst,
+
+    // TODO: not sure if this is a correct design
+    input [255:0] input_write_data,
+    output [255:0] app_rd_data,
+    output wire app_wdf_wren,
+    output wire app_rd_data_valid
  );
 
 //***************************************************************************
@@ -46,11 +55,10 @@ reg app_en_next, app_en;
 
 reg [255:0] app_wdf_data_next, app_wdf_data;
 wire app_wdf_end;
-wire app_wdf_wren;
 
 wire [255:0] app_rd_data;
 wire app_rd_data_end; 
-wire app_rd_data_valid;
+
     
 wire app_rdy; 
 wire app_wdf_rdy; 
@@ -176,10 +184,10 @@ always @(posedge ui_clk or posedge ui_clk_sync_rst)
 begin
     if(ui_clk_sync_rst)
     begin
-        read_cnt_reg <= 5'd10;
-        write_cnt_reg <= 5'd10;
-        read_addr_reg <= 29'b0;
-        write_addr_reg <= 29'b0;
+        read_cnt_reg <= input_read_cnt;
+        write_cnt_reg <= input_write_cnt;
+        read_addr_reg <= input_read_addr;
+        write_addr_reg <= input_write_addr;
         app_addr <= 29'b0;
         app_cmd <= cmd_write;
         app_en <= 1'b0; 
@@ -320,7 +328,8 @@ begin
         begin
             app_addr_next = write_addr_reg;
             write_addr_next = write_addr_reg + 29'd8;
-            app_wdf_data_next = app_wdf_data + 256'd2;
+            app_wdf_data_next = input_write_data;
+            input_write_enable = 1;
             write_cnt_next = write_cnt_reg - 5'd1;
         end 
     end
