@@ -17,7 +17,7 @@ module top(
     /* LED */
     output wire [7:0]  led,
 
-	/* DDR3 */ // TODO: check this part
+	/* DDR3 */
     inout wire [31:0] ddr3_dq,
     inout wire [3:0] ddr3_dqs_n,
     inout wire [3:0] ddr3_dqs_p,
@@ -35,11 +35,8 @@ module top(
 
     output wire [3:0] ddr3_dm,
 
-    output wire [0:0] ddr3_odt,
-
-    output wire tg_compare_error,
+    output wire [0:0] ddr3_odt
     
-    input wire sys_rst // System reset - Default polarity of sys_rst pin is Active Low, System reset polarity will change based on the option, selected in GUI.
 );
 
 
@@ -73,6 +70,11 @@ wire [28:0] input_write_addr;
 wire [5:0] input_read_cnt;
 wire [5:0] input_write_cnt;
 
+wire sys_rst;
+wire tg_compare_error;
+wire sys_clk_i;
+wire app_rd_data_valid;
+
 
 /* FIFOs */
 wire [14:0] rd_data_count_0;
@@ -86,17 +88,18 @@ wire [16:0] wr_data_count_1;
 // Assign Variables
 //***************************************************************************
 // assign dac_input_data = {4'b0, pipe_out_data[7:0]}; // each sample byte = 8bits, so 12 bits should be enough, TODO: for now the preceding 24bits are wasted.
-assign input_read_addr = 28'b0;
-assign input_write_addr = 28'b0;
+assign input_read_addr = 29'b0;
+assign input_write_addr = 29'b0;
 assign input_read_cnt = 6'd10;
 assign input_write_cnt = 6'd10;
 
 assign sys_rst = mst_reset;
+assign dac_clk = okClk;
+assign sys_clk_i = okClk;
 
 //***************************************************************************
 // Instantiate DDR3 controller
 //***************************************************************************
-// TODO: check these signals, modify the following and define vars accordingly
 ddr3_controller my_ddr3_controller(
     // Inouts
     .ddr3_dq(ddr3_dq),
@@ -141,8 +144,6 @@ ddr3_controller my_ddr3_controller(
     .app_rd_data_valid(app_rd_data_valid)
  );
 
-// TODO: find how to write sys_clk_i signal
-// sys_rst? how many resets can be used in this system?
 
 //***************************************************************************
 // Instantiate USB controller (via frontpanel API)
@@ -186,8 +187,6 @@ usb_controller my_usb_controller(
 //***************************************************************************
 // Instantiate FIFO module (USB - DDR3 SDRAM)
 //***************************************************************************
-// TODO: need to create ip, FIFO (32 x 1024)? maybe add the size?
-// TODO: change the design according to the need of DDR3
 fifo_generator_0 fifo_generator_usb2ddr(
 	.clk        (okClk),
 	.srst       (mst_reset),
@@ -228,8 +227,6 @@ fifo_generator_1 fifo_generator_ddr2usb (
 //***************************************************************************
 // Instantiate FIFO module (DDR3 SDRAM - DAC)
 //***************************************************************************
-// // TODO: need to create ip, FIFO (32 x 1024)? maybe add the size?
-// // TODO: change the design according to the need of DDR3
 // fifo_generator_0 fifo(
 // 	.clk        (okClk),
 // 	.srst       (mst_reset),

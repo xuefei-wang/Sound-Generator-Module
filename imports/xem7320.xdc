@@ -114,165 +114,78 @@ set_property SLEW FAST [get_ports {reset}]
 ############################################################################
 ## Ports - A
 ############################################################################
-# PORTA-1 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-2 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-3 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-4 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
 # PORTA-5 
-set_property PACKAGE_PIN AA10 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AA10 [get_ports {dac_output_data[0]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[0]}]
 
 # PORTA-6 
-set_property PACKAGE_PIN AA9 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AA9 [get_ports {dac_output_data[1]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[1]}]
 
 # PORTA-7 
-set_property PACKAGE_PIN AA11 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AA11 [get_ports {dac_output_data[2]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[2]}]
 
 # PORTA-8 
-set_property PACKAGE_PIN AB10 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AB10 [get_ports {dac_output_data[3]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[3]}]
 
 # PORTA-9 
-set_property PACKAGE_PIN Y11 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN Y11 [get_ports {dac_output_data[4]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[4]}]
 
 # PORTA-10 
-set_property PACKAGE_PIN AA13 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AA13 [get_ports {dac_output_data[5]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[5]}]
 
 # PORTA-11 
-set_property PACKAGE_PIN Y12 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN Y12 [get_ports {dac_output_data[6]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[6]}]
 
 # PORTA-12 
-set_property PACKAGE_PIN AB13 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AB13 [get_ports {dac_output_data[7]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[7]}]
 
 # PORTA-13 
-set_property PACKAGE_PIN AB16 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AB16 [get_ports {dac_output_data[8]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[8]}]
 
 # PORTA-14 
-set_property PACKAGE_PIN V10 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN V10 [get_ports {dac_output_data[9]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[9]}]
 
 # PORTA-15 
-set_property PACKAGE_PIN AB17 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AB17 [get_ports {dac_output_data[10]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[10]}]
 
 # PORTA-16 
-set_property PACKAGE_PIN W10 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN W10 [get_ports {dac_output_data[11]}]
+set_property IOSTANDARD LVCMOS18 [get_ports {dac_output_data[11]}]
 
 # PORTA-17 
-set_property PACKAGE_PIN AB11 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AB11 [get_ports dac_cs_n]
+set_property IOSTANDARD LVCMOS18 [get_ports dac_cs_n]
 
 # PORTA-18 
-set_property PACKAGE_PIN Y16 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN Y16 [get_ports dac_sclk]
+set_property IOSTANDARD LVCMOS18 [get_ports dac_sclk]
 
 # PORTA-19 
-set_property PACKAGE_PIN AB12 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN AB12 [get_ports dac_sdio]
+set_property IOSTANDARD LVCMOS18 [get_ports dac_sdio]
 
 # PORTA-20 
-set_property PACKAGE_PIN AA16 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+# set_property PACKAGE_PIN AA16 [get_ports dac_opamp_en]
+# set_property IOSTANDARD LVCMOS18 [get_ports dac_opamp_en]
 
 # PORTA-21 
-set_property PACKAGE_PIN Y14 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-22 
-set_property PACKAGE_PIN W14 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-23 
-set_property PACKAGE_PIN AA15 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-24 
-set_property PACKAGE_PIN V13 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-25 
-set_property PACKAGE_PIN U15 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-26 
-set_property PACKAGE_PIN V14 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-27 
-set_property PACKAGE_PIN AB15 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-28 
-set_property PACKAGE_PIN V15 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-29 
-set_property PACKAGE_PIN AA14 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-30 
-set_property PACKAGE_PIN T14 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-31 
-set_property PACKAGE_PIN Y13 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-32 
-set_property PACKAGE_PIN T15 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-33 
-set_property PACKAGE_PIN W11 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN Y14 [get_ports dac_reset_pinmd]
+set_property IOSTANDARD LVCMOS18 [get_ports dac_reset_pinmd]
 
 # PORTA-34 
-set_property PACKAGE_PIN W15 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
+set_property PACKAGE_PIN W15 [get_ports dac_clk]
+set_property IOSTANDARD LVCMOS18 [get_ports dac_clk]
 
-# PORTA-35 
-set_property PACKAGE_PIN W12 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-36 
-set_property PACKAGE_PIN W16 [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-37 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-38 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-39 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
-
-# PORTA-40 
-set_property PACKAGE_PIN  [get_ports {}]
-set_property IOSTANDARD  [get_ports {}]
 
 
 ############################################################################

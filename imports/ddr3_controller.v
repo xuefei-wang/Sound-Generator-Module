@@ -56,7 +56,6 @@ reg app_en_next, app_en;
 reg [255:0] app_wdf_data_next, app_wdf_data;
 wire app_wdf_end;
 
-wire [255:0] app_rd_data;
 wire app_rd_data_end; 
 
     
@@ -329,7 +328,7 @@ begin
             app_addr_next = write_addr_reg;
             write_addr_next = write_addr_reg + 29'd8;
             app_wdf_data_next = input_write_data;
-            input_write_enable = 1;
+            // input_write_enable = 1;
             write_cnt_next = write_cnt_reg - 5'd1;
         end 
     end

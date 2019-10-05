@@ -8,7 +8,7 @@ module usb_controller(
     output wire ep_write,
     output wire [31:0] ep_dataout,
     output wire ep_read,
-    input wire [31:0] ep_datain, //TODO: check these input/output type
+    input wire [31:0] ep_datain,
     
     output wire mst_reset
 	// output wire select
