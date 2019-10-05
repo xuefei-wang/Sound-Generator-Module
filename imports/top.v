@@ -19,21 +19,21 @@ module top(
 
 	/* DDR3 */ // TODO: check this part
     inout wire [31:0] ddr3_dq,
-    inout wire [3:0]ddr3_dqs_n,
-    inout wire [3:0]ddr3_dqs_p,
+    inout wire [3:0] ddr3_dqs_n,
+    inout wire [3:0] ddr3_dqs_p,
 
     /* Outputs */
     output wire [14:0] ddr3_addr,
-    output wire [2:0]ddr3_ba,
+    output wire [2:0] ddr3_ba,
     output wire ddr3_ras_n,
     output wire ddr3_cas_n,
     output wire ddr3_we_n,
     output wire ddr3_reset_n,
-    output wire [0:0]ddr3_ck_p,
-    output wire [0:0]ddr3_ck_n,
+    output wire [0:0] ddr3_ck_p,
+    output wire [0:0] ddr3_ck_n,
     output wire [0:0] ddr3_cke,
 
-    output wire [3:0]ddr3_dm,
+    output wire [3:0] ddr3_dm,
 
     output wire [0:0] ddr3_odt,
 
@@ -50,9 +50,9 @@ wire full, empty;
 wire [9:0] data_count; 
 
 /* dac */
-wire [31:0] dout;
-reg  [32:0] dout_r;
-wire [11:0] dac_input_data;
+// wire [31:0] dout;
+// reg  [32:0] dout_r;
+// wire [11:0] dac_input_data;
 
 
 /* USB */
@@ -64,7 +64,7 @@ wire [31:0] pipe_out_data;
 
 /* DDR3 */
 wire init_calib_complete;
-wire [255:0] input_write_data; //TODO: this is the FIFO-to-DDR data, use wren to control
+wire [255:0] input_write_data;
 wire [255:0] app_rd_data;
 wire app_wdf_wren;
 
@@ -74,15 +74,24 @@ wire [5:0] input_read_cnt;
 wire [5:0] input_write_cnt;
 
 
+/* FIFOs */
+wire [14:0] rd_data_count_0;
+wire [17:0] wr_data_count_0;
+wire [19:0] rd_data_count_1;
+wire [16:0] wr_data_count_1;
+
+
+
 //***************************************************************************
 // Assign Variables
 //***************************************************************************
-assign dac_input_data = {4'b0, pipe_out_data[7:0]}; // each sample byte = 8bits, so 12 bits should be enough, TODO: for now the preceding 24bits are wasted.
+// assign dac_input_data = {4'b0, pipe_out_data[7:0]}; // each sample byte = 8bits, so 12 bits should be enough, TODO: for now the preceding 24bits are wasted.
 assign input_read_addr = 28'b0;
 assign input_write_addr = 28'b0;
 assign input_read_cnt = 6'd10;
 assign input_write_cnt = 6'd10;
 
+assign sys_rst = mst_reset;
 
 //***************************************************************************
 // Instantiate DDR3 controller
@@ -145,13 +154,13 @@ usb_controller my_usb_controller(
 	.okUHU(okUHU),
 	.okAA(okAA),
     .okClk(okClk),
-    .pipe_in_write(pipe_in_write),
-    .pipe_in_data(pipe_in_data),
-    .pipe_out_read(pipe_out_read),
-    .pipe_out_data(pipe_out_data),
+    .ep_write(pipe_in_write), // from host to target
+    .ep_dataout(pipe_in_data), // from host to target
+    .ep_read(pipe_out_read),
+    .ep_datain(pipe_out_data),
     
-    .mst_reset(mst_reset),
-    .select(select)
+    .mst_reset(mst_reset)
+    // .select(select)
 
 );
 
@@ -191,8 +200,8 @@ fifo_generator_0 fifo_generator_usb2ddr(
 	.dout       (input_write_data), // [255:0]
 	.rd_en      (app_wdf_wren), // read enable
 	// Data Count
-	.rd_data_count(rd_data_count),  // output wire [14 : 0] rd_data_count
-    .wr_data_count(wr_data_count)  // output wire [17 : 0] wr_data_count
+	.rd_data_count(rd_data_count_0),  // output wire [14 : 0] rd_data_count_0
+    .wr_data_count(wr_data_count_0)  // output wire [17 : 0] wr_data_count_0
 
 );
 
@@ -212,8 +221,8 @@ fifo_generator_1 fifo_generator_ddr2usb (
 	.dout       (pipe_out_data), // [31 : 0]
 	.rd_en      (pipe_out_read), // read enable
 	// Data Count
-	.rd_data_count(rd_data_count),  // output wire [19 : 0] rd_data_count
-    .wr_data_count(wr_data_count)  // output wire [16 : 0] wr_data_count
+	.rd_data_count(rd_data_count_1),  // output wire [19 : 0] rd_data_count_1
+    .wr_data_count(wr_data_count_1)  // output wire [16 : 0] wr_data_count_1
 );
 
 //***************************************************************************

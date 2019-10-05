@@ -51,9 +51,9 @@ class SigGen:
         self.xem.SetWireInValue(0x05, int(fpga_clk_freq / file_freq))
         self.xem.UpdateWireIns()
     
-    def select(self, choice):
-        self.xem.SetWireInValue(0x02, choice)
-        self.xem.UpdateWireIns()
+    # def select(self, choice):
+    #     self.xem.SetWireInValue(0x02, choice)
+    #     self.xem.UpdateWireIns()
     
     def send_data(self, buf, block_size = 32):
         # TODO: check if padding is no longer necessary for simple pipe
@@ -86,7 +86,7 @@ sg.reset()
 
 file_freq = 1008 # 8192 # hz
 sg.set_freq(FPGA_CLK_FREQ, file_freq)
-sg.select(0)
+# sg.select(0)
 
 print("--- Start Sending Data ---")
 

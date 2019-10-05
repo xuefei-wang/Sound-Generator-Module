@@ -111,6 +111,9 @@ set_property IOSTANDARD LVCMOS18 [get_ports {reset}]
 set_property SLEW FAST [get_ports {reset}]
 
 
+############################################################################
+## Ports - A
+############################################################################
 # PORTA-1 
 set_property PACKAGE_PIN  [get_ports {}]
 set_property IOSTANDARD  [get_ports {}]
@@ -271,6 +274,10 @@ set_property IOSTANDARD  [get_ports {}]
 set_property PACKAGE_PIN  [get_ports {}]
 set_property IOSTANDARD  [get_ports {}]
 
+
+############################################################################
+## Ports - B
+############################################################################
 # PORTB-1 
 set_property PACKAGE_PIN  [get_ports {}]
 set_property IOSTANDARD  [get_ports {}]
@@ -431,6 +438,10 @@ set_property IOSTANDARD  [get_ports {}]
 set_property PACKAGE_PIN  [get_ports {}]
 set_property IOSTANDARD  [get_ports {}]
 
+
+############################################################################
+## Ports - C
+############################################################################
 # PORTC-1 
 set_property PACKAGE_PIN  [get_ports {}]
 set_property IOSTANDARD  [get_ports {}]

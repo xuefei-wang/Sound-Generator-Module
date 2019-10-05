@@ -429,7 +429,7 @@ module sim_tb_top;
   //                         FPGA Memory Controller
   //===========================================================================
 
-  example_top1 u_ip_top
+  ddr3_controller u_ip_top
      (
 
      .ddr3_dq              (ddr3_dq_fpga),
