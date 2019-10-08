@@ -5,6 +5,7 @@ mig_7series_0_ex.sim/*
 mig_7series_0_ex.xpr/*
 mig_7series_0_ex.xpr
 mig_7series_0_ex.runs/
+mig_7series_0_ex.srcs/
 vivado.jou
 vivado.log
 simulate_windows/*
