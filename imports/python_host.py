@@ -75,7 +75,7 @@ class SigGen:
 
 ##################################################################
 print("--- Initialize Board ---")
-bit_stream = r"C:\fpga_dac_signal_generator_spi\signal_generator_spi\signal_generator_spi.runs\impl_1\top.bit" 
+bit_stream = r"C:\" 
 # bit_stream = r"C:\fpga_dac_signal_generator_spi\output\3_choose_between_two_ram_succeeded.bit"
 
 FPGA_CLK_FREQ =  100800000 # hz

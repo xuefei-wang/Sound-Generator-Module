@@ -35,7 +35,11 @@ module top(
 
     output wire [3:0] ddr3_dm,
 
-    output wire [0:0] ddr3_odt
+    output wire [0:0] ddr3_odt,
+
+    /* Clock */
+    input wire sys_clkn,
+    input wire sys_clkp
     
 );
 
@@ -77,12 +81,20 @@ wire app_rd_data_valid;
 
 
 /* FIFOs */
-wire [14:0] rd_data_count_0;
-wire [17:0] wr_data_count_0;
-wire [19:0] rd_data_count_1;
-wire [16:0] wr_data_count_1;
+wire [3:0] rd_data_count_0;
+wire [6:0] wr_data_count_0;
+wire [6:0] rd_data_count_1;
+wire [3:0] wr_data_count_1;
 
+wire full_0;
+wire empty_0;
+wire full_1;
+wire empty_1;
 
+wire rd_rst_busy_0;
+wire wr_rst_busy_0;
+wire rd_rst_busy_1;
+wire wr_rst_busy_1;
 
 //***************************************************************************
 // Assign Variables
@@ -95,7 +107,23 @@ assign input_write_cnt = 6'd10;
 
 assign sys_rst = mst_reset;
 assign dac_clk = okClk;
-assign sys_clk_i = okClk;
+
+//***************************************************************************
+// Turn double-ended clock into single-ended
+//***************************************************************************
+
+IBUFDS #(
+    .DIFF_TERM    ("TRUE")
+)IBUFDS_data_inst(
+    .O(sys_clk_ibufg),
+    .I(sys_clkp),
+    .IB(sys_clkn)
+);
+
+IBUFG  u_ibufg_sys_clk(
+    .I  (sys_clk_ibufg),
+    .O  (sys_clk_i)
+);
 
 //***************************************************************************
 // Instantiate DDR3 controller
@@ -187,58 +215,41 @@ usb_controller my_usb_controller(
 //***************************************************************************
 // Instantiate FIFO module (USB - DDR3 SDRAM)
 //***************************************************************************
-fifo_generator_0 fifo_generator_usb2ddr(
-	.clk        (okClk),
-	.srst       (mst_reset),
-	// FIFO_WRITE
-	.full       (full), // output full signal
-	.din        (pipe_in_data), // write data, [31:0]
-	.wr_en      (pipe_in_write), // write enable, data should be written when it's asserted
-	// FIFO_READ
-	.empty      (empty), // output empty signal
-	.dout       (input_write_data), // [255:0]
-	.rd_en      (app_wdf_wren), // read enable
-	// Data Count
-	.rd_data_count(rd_data_count_0),  // output wire [14 : 0] rd_data_count_0
-    .wr_data_count(wr_data_count_0)  // output wire [17 : 0] wr_data_count_0
-
-);
-
-
-fifo_generator_0 your_instance_name (
-  .rst(rst),                      // input wire rst
-  .wr_clk(wr_clk),                // input wire wr_clk
-  .rd_clk(rd_clk),                // input wire rd_clk
-  .din(din),                      // input wire [31 : 0] din
-  .wr_en(wr_en),                  // input wire wr_en
-  .rd_en(rd_en),                  // input wire rd_en
-  .dout(dout),                    // output wire [255 : 0] dout
-  .full(full),                    // output wire full
-  .empty(empty),                  // output wire empty
-  .rd_data_count(rd_data_count),  // output wire [3 : 0] rd_data_count
-  .wr_data_count(wr_data_count),  // output wire [6 : 0] wr_data_count
-  .wr_rst_busy(wr_rst_busy),      // output wire wr_rst_busy
-  .rd_rst_busy(rd_rst_busy)      // output wire rd_rst_busy
+fifo_generator_0 fifo_generator_usb2ddr (
+  .rst(mst_reset),                      // input wire rst
+  .wr_clk(okClk),                // input wire wr_clk
+  .rd_clk(sys_clk_i),                // input wire rd_clk
+  .din(pipe_in_data),                      // input wire [31 : 0] din
+  .wr_en(pipe_in_write),                  // input wire wr_en
+  .rd_en(app_wdf_wren),                  // input wire rd_en
+  .dout(input_write_data),                    // output wire [255 : 0] dout
+  .full(full_0),                    // output wire full
+  .empty(empty_0),                  // output wire empty
+  .rd_data_count(rd_data_count_0),  // output wire [3 : 0] rd_data_count
+  .wr_data_count(wr_data_count_0),  // output wire [6 : 0] wr_data_count
+  .wr_rst_busy(wr_rst_busy_0),      // output wire wr_rst_busy
+  .rd_rst_busy(rd_rst_busy_0)      // output wire rd_rst_busy
 );
 
 //***************************************************************************
 // Instantiate FIFO module (DDR3 - USB SDRAM) TODO: delete this when DAC is incorporated
 //***************************************************************************
-fifo_generator_1 fifo_generator_ddr2usb (
-	.clk        (okClk),
-	.srst       (mst_reset),
-	// FIFO_WRITE
-	.full       (full), // output full signal
-	.din        (app_rd_data), // write data, [255 : 0]
-	.wr_en      (app_rd_data_valid), // write enable, data should be written when it's asserted
-	// FIFO_READ
-	.empty      (empty), // output empty signal
-	.dout       (pipe_out_data), // [31 : 0]
-	.rd_en      (pipe_out_read), // read enable
-	// Data Count
-	.rd_data_count(rd_data_count_1),  // output wire [19 : 0] rd_data_count_1
-    .wr_data_count(wr_data_count_1)  // output wire [16 : 0] wr_data_count_1
+fifo_generator_1 fifo_generator_ddr2usb(
+  .rst(mst_reset),                      // input wire rst
+  .wr_clk(sys_clk_i),                // input wire wr_clk
+  .rd_clk(okClk),                // input wire rd_clk //TODO: change this when DAC is incorporated
+  .din(app_rd_data),                      // input wire [255 : 0] din
+  .wr_en(app_rd_data_valid),                  // input wire wr_en
+  .rd_en(pipe_out_read),                  // input wire rd_en
+  .dout(pipe_out_data),                    // output wire [31 : 0] dout
+  .full(full_1),                    // output wire full
+  .empty(empty_1),                  // output wire empty
+  .rd_data_count(rd_data_count_1),  // output wire [6 : 0] rd_data_count
+  .wr_data_count(wr_data_count_1),  // output wire [3 : 0] wr_data_count
+  .wr_rst_busy(wr_rst_busy_1),      // output wire wr_rst_busy
+  .rd_rst_busy(rd_rst_busy_1)      // output wire rd_rst_busy
 );
+
 
 //***************************************************************************
 // Instantiate FIFO module (DDR3 SDRAM - DAC)
