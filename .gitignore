@@ -10,3 +10,4 @@ vivado.jou
 vivado.log
 simulate_windows/*
 reference/*
+.vscode/*
